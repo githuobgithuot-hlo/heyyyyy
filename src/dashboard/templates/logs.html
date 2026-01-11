@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Logs - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Courier New', monospace;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+        .nav a.active {
+            background: #667eea;
+            color: white;
+        }
+        .logs-section {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #d4d4d4;
+        }
+        .logs-section h2 {
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        .log-container {
+            background: #252526;
+            padding: 20px;
+            border-radius: 5px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            line-height: 1.8;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+            word-wrap: break-word;
+        }
+        .log-entry.INFO {
+            color: #4ec9b0;
+        }
+        .log-entry.DEBUG {
+            color: #9cdcfe;
+        }
+        .log-entry.WARNING {
+            color: #dcdcaa;
+        }
+        .log-entry.ERROR {
+            color: #f48771;
+            font-weight: bold;
+        }
+        .log-entry.CRITICAL {
+            color: #f48771;
+            background: #3a1f1f;
+            padding: 5px;
+            border-left: 3px solid #f48771;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+            padding: 20px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Bot Logs</h1>
+            <p>Recent log entries and errors</p>
+        </header>
+        
+        <nav class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/opportunities">Opportunities</a>
+            <a href="/logs" class="active">Logs</a>
+        </nav>
+        
+        <div class="logs-section">
+            <h2>Recent Log Entries (Last 100 lines)</h2>
+            <button class="refresh-btn" onclick="location.reload()">🔄 Refresh</button>
+            {% if log_entries %}
+            <div class="log-container">
+                {% for entry in log_entries %}
+                <div class="log-entry {% if 'ERROR' in entry or 'CRITICAL' in entry %}ERROR{% elif 'WARNING' in entry %}WARNING{% elif 'DEBUG' in entry %}DEBUG{% else %}INFO{% endif %}">
+                    {{ entry|e }}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-data">
+                <p>No log entries found. Log file may not exist yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p>Last updated: {{ timestamp[:19] if timestamp else 'N/A' }} UTC</p>
+            <p>Log file: logs/arbitrage_bot.log</p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-scroll to bottom
+        window.onload = function() {
+            const logContainer = document.querySelector('.log-container');
+            if (logContainer) {
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        };
+        
+        // Auto-refresh every 10 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 10000);
+    </script>
+</body>
+</html>
+

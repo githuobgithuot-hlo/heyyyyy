@@ -1,0 +1,39 @@
+[
+  {
+    "platform": "cloudbet",
+    "event_name": "2024 US Presidential Election",
+    "market_name": "Will Trump Win?",
+    "outcome": "YES",
+    "odds": 1.85,
+    "url": "https://www.cloudbet.com/en/sports/politics/mock-1",
+    "start_time": null
+  },
+  {
+    "platform": "cloudbet",
+    "event_name": "2024 US Presidential Election",
+    "market_name": "Will Trump Win?",
+    "outcome": "NO",
+    "odds": 2.20,
+    "url": "https://www.cloudbet.com/en/sports/politics/mock-1",
+    "start_time": null
+  },
+  {
+    "platform": "cloudbet",
+    "event_name": "2024 US Presidential Election",
+    "market_name": "Winner",
+    "outcome": "Trump",
+    "odds": 2.10,
+    "url": "https://www.cloudbet.com/en/sports/politics/mock-2",
+    "start_time": null
+  },
+  {
+    "platform": "cloudbet",
+    "event_name": "2024 US Presidential Election",
+    "market_name": "Winner",
+    "outcome": "Biden",
+    "odds": 1.80,
+    "url": "https://www.cloudbet.com/en/sports/politics/mock-2",
+    "start_time": null
+  }
+]
+

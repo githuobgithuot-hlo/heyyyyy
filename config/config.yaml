@@ -1,0 +1,57 @@
+# Arbitrage Bot Configuration
+# All values can be changed without editing code
+
+# Bankroll and Betting Configuration
+bankroll:
+  amount: 2000.0  # Total capital in USD (with kelly_fraction 0.5, total investment = 1000)
+  kelly_fraction: 0.5  # Kelly multiplier: 1.0 = full Kelly, 0.5 = half Kelly, 0.25 = quarter Kelly
+
+# Arbitrage Detection Settings
+arbitrage:
+  min_profit_threshold: 0.5  # Minimum profit percentage to trigger alert (e.g., 0.5 = 0.5%)
+  polling_interval: 30  # Seconds between API polls
+  similarity_threshold: 85  # Minimum similarity percentage for market matching (0-100)
+
+# Telegram Configuration
+telegram:
+  bot_token: ""  # Set via TELEGRAM_BOT_TOKEN environment variable (overrides this)
+  chat_id: 0  # Set via TELEGRAM_CHAT_ID environment variable (overrides this)
+
+# API Configuration
+apis:
+  cloudbet:
+    api_key: ""  # Set via CLOUDBET_API_KEY environment variable (overrides this)
+    base_url: "https://sports-api.cloudbet.com/pub"
+    timeout: 10  # Request timeout in seconds
+    retry_attempts: 3
+    retry_delay: 2  # Seconds between retries
+  
+  polymarket:
+    base_url: "https://gamma-api.polymarket.com"
+    timeout: 10
+    retry_attempts: 3
+    retry_delay: 2
+
+# Quiet Hours (optional - no alerts during these hours)
+quiet_hours:
+  enabled: false
+  start_hour: 2  # 2 AM
+  end_hour: 8    # 8 AM
+
+# Logging Configuration
+logging:
+  level: "DEBUG"  # DEBUG, INFO, WARNING, ERROR, CRITICAL (changed to DEBUG for troubleshooting)
+  file: "logs/arbitrage_bot.log"
+  max_bytes: 10485760  # 10 MB
+  backup_count: 5
+
+# API Diagnostics
+debug_api: true  # Set to true to enable detailed API request/response logging
+
+# Mock Data (for testing when APIs return empty)
+use_mock_data: false  # Set to true to force use of mock data instead of real APIs
+
+# Database Configuration
+database:
+  path: "data/arbitrage_events.db"
+

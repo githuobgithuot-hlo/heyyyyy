@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbitrage Opportunities - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+        .nav a.active {
+            background: #667eea;
+            color: white;
+        }
+        .opportunities-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .opportunities-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .badge.profit {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge.loss {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+            padding: 20px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .profit-positive {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .profit-negative {
+            color: #ef4444;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Arbitrage Opportunities</h1>
+            <p>Complete list of all detected opportunities</p>
+        </header>
+        
+        <nav class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/opportunities" class="active">Opportunities</a>
+            <a href="/logs">Logs</a>
+        </nav>
+        
+        <div class="opportunities-section">
+            <h2>All Opportunities (Limit: {{ limit }})</h2>
+            {% if opportunities %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Market</th>
+                        <th>Platform A</th>
+                        <th>Platform B</th>
+                        <th>Odds A</th>
+                        <th>Odds B</th>
+                        <th>Profit %</th>
+                        <th>Bet Amount A</th>
+                        <th>Bet Amount B</th>
+                        <th>Total Capital</th>
+                        <th>Guaranteed Profit</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for opp in opportunities %}
+                    <tr>
+                        <td>{{ opp.timestamp[:19] if opp.timestamp else 'N/A' }}</td>
+                        <td>{{ opp.market_name[:40] }}{% if opp.market_name|length > 40 %}...{% endif %}</td>
+                        <td>{{ opp.platform_a }}</td>
+                        <td>{{ opp.platform_b }}</td>
+                        <td>{{ "%.2f"|format(opp.odds_a) }}</td>
+                        <td>{{ "%.2f"|format(opp.odds_b) }}</td>
+                        <td>
+                            {% if opp.profit_percentage > 0 %}
+                            <span class="profit-positive">{{ "%.2f"|format(opp.profit_percentage) }}%</span>
+                            {% else %}
+                            <span class="profit-negative">{{ "%.2f"|format(opp.profit_percentage) }}%</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ "%.2f"|format(opp.bet_amount_a) }}</td>
+                        <td>${{ "%.2f"|format(opp.bet_amount_b) }}</td>
+                        <td>${{ "%.2f"|format(opp.total_capital) }}</td>
+                        <td>
+                            {% if opp.guaranteed_profit > 0 %}
+                            <span class="profit-positive">${{ "%.2f"|format(opp.guaranteed_profit) }}</span>
+                            {% else %}
+                            <span class="profit-negative">${{ "%.2f"|format(opp.guaranteed_profit) }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if opp.alert_sent %}
+                            <span class="badge success">Alerted</span>
+                            {% else %}
+                            <span class="badge info">New</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data">
+                <p>No opportunities found yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p>Last updated: {{ timestamp[:19] if timestamp else 'N/A' }} UTC</p>
+            <p>Showing up to {{ limit }} opportunities</p>
+        </div>
+    </div>
+</body>
+</html>
+

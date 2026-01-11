@@ -1,0 +1,36 @@
+[
+  {
+    "platform": "polymarket",
+    "market_id": "mock_poly_1",
+    "title": "Will Trump win the 2024 US Presidential Election?",
+    "outcomes": {
+      "YES": 2.10,
+      "NO": 1.95
+    },
+    "url": "https://polymarket.com/event/mock-1",
+    "start_time": null
+  },
+  {
+    "platform": "polymarket",
+    "market_id": "mock_poly_2",
+    "title": "Will Biden be re-elected in 2024?",
+    "outcomes": {
+      "YES": 2.10,
+      "NO": 1.90
+    },
+    "url": "https://polymarket.com/event/mock-2",
+    "start_time": null
+  },
+  {
+    "platform": "polymarket",
+    "market_id": "mock_poly_3",
+    "title": "Will there be a recession in 2024?",
+    "outcomes": {
+      "YES": 1.75,
+      "NO": 2.25
+    },
+    "url": "https://polymarket.com/event/mock-3",
+    "start_time": null
+  }
+]
+
