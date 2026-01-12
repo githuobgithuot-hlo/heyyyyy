@@ -91,20 +91,28 @@ class SportsArbitrageEngine:
         
         for opp in opportunities:
             if opp['type'] == 'arbitrage':
+                # For arbitrage, we need to determine the OPPOSITE outcome for Cloudbet
+                team = opp['team']
+                cb_teams = (opp['market_b'].get('teams', ['Team1', 'Team2'])[0], 
+                           opp['market_b'].get('teams', ['Team1', 'Team2'])[1]) if 'teams' in opp['market_b'] else ('Team1', 'Team2')
+                
+                # Determine opposite team for Cloudbet
+                opposite_team = cb_teams[1] if cb_teams[0] == team else cb_teams[0]
+                
                 # Format for arbitrage opportunities
                 formatted = {
                     'market_name': opp['market_name'],
-                    'outcome_name': f"{opp['team']} (PM: {opp['pm_outcome']})",
+                    'outcome_name': f"{team} (PM) vs {opposite_team} (CB)",
                     'platform_a': opp['platform_a'],
                     'platform_b': opp['platform_b'],
                     'market_a': opp['market_a'],
                     'market_b': opp['market_b'],
                     'outcome_a': {
-                        'name': opp['pm_outcome'],
+                        'name': f"{team} {opp['pm_outcome']}",  # e.g., "Steelers YES"
                         'odds': opp['pm_odds']
                     },
                     'outcome_b': {
-                        'name': opp['team'],
+                        'name': f"{opposite_team}",  # Opposite team
                         'odds': opp['cb_odds']
                     },
                     'odds_a': opp['pm_odds'],

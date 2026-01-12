@@ -57,10 +57,10 @@ class TelegramNotifier:
         Format arbitrage opportunity as Telegram message.
         
         Format matches the required specification:
-        - 🚨 Arbitrage Found header with profit %
+        - ARBITRAGE Found header with profit %
         - Market name
-        - Platform A bet (odds + amount + link)
-        - Platform B bet (odds + amount + link)
+        - Platform A bet (team/outcome + odds + amount + link)
+        - Platform B bet (OPPOSITE team/outcome + odds + amount + link)
         - Total investment
         - Guaranteed profit
         
@@ -76,7 +76,7 @@ class TelegramNotifier:
         platform_a = opportunity.get('platform_a', 'Platform A')
         platform_b = opportunity.get('platform_b', 'Platform B')
         
-        # Get outcome names for display
+        # Get outcome names for display - these should be OPPOSITE outcomes for arbitrage
         outcome_a = opportunity.get('outcome_a', {}).get('name', 'YES')
         outcome_b = opportunity.get('outcome_b', {}).get('name', 'NO')
         
@@ -95,21 +95,42 @@ class TelegramNotifier:
         platform_a_display = platform_a.capitalize()
         platform_b_display = platform_b.capitalize()
         
-        # Remove Unicode emojis for Windows compatibility
-        message = f"""*ARBITRAGE FOUND ({profit_pct:.2f}%)*
+        # Build message with better formatting for arbitrage
+        opportunity_type = opportunity.get('type', 'arbitrage')
+        
+        if opportunity_type == 'arbitrage':
+            # For arbitrage, emphasize the OPPOSITE outcomes
+            message = f"""*ARBITRAGE FOUND ({profit_pct:.2f}%)*
 
 *Market:* {market_name}
 
 *{platform_a_display}:*
-{outcome_a} @ {odds_a:.2f} - ${bet_amount_a:.2f}
+{outcome_a} @ {odds_a:.2f}
+Stake: ${bet_amount_a:.2f}
+{url_a}
+
+*{platform_b_display}:* (OPPOSITE)
+{outcome_b} @ {odds_b:.2f}
+Stake: ${bet_amount_b:.2f}
+{url_b}
+
+*Total Stake:* ${total_capital:.2f}
+*Guaranteed Profit:* ${guaranteed_profit:.2f}"""
+        else:
+            # Value edge message
+            message = f"""*VALUE EDGE FOUND ({profit_pct:.2f}%)*
+
+*Market:* {market_name}
+
+*{platform_a_display}:*
+{outcome_a} @ {odds_a:.2f}
 {url_a}
 
 *{platform_b_display}:*
-{outcome_b} @ {odds_b:.2f} - ${bet_amount_b:.2f}
+{outcome_b} @ {odds_b:.2f}
 {url_b}
 
-*Total Invested:* ${total_capital:.2f}
-*Guaranteed Profit:* ${guaranteed_profit:.2f}"""
+*Difference:* ${abs(bet_amount_a - bet_amount_b):.2f}"""
         
         return message
     
