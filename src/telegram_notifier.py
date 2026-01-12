@@ -16,25 +16,32 @@ from .logger import setup_logger
 
 class TelegramNotifier:
     """
-    Sends arbitrage alerts via Telegram.
+    Sends arbitrage alerts via Telegram to multiple chat IDs/channels.
     
     Features:
     - Async/await (non-blocking)
     - Automatic retries (up to 3 attempts)
     - Graceful error handling
     - Formatted alert messages
+    - Multi-recipient support (chat + channel)
     """
     
-    def __init__(self, bot_token: str, chat_id: int):
+    def __init__(self, bot_token: str, chat_id: int, channel_id: Optional[int] = None):
         """
         Initialize Telegram notifier.
         
         Args:
             bot_token: Telegram bot token
             chat_id: Telegram chat ID (integer) for notifications
+            channel_id: Optional Telegram channel ID for notifications
         """
         self.bot_token = bot_token
         self.chat_id = int(chat_id)  # Ensure it's an integer
+        self.channel_id = int(channel_id) if channel_id else None  # Optional channel
+        self.recipient_ids = [self.chat_id]  # Start with chat ID
+        if self.channel_id:
+            self.recipient_ids.append(self.channel_id)
+        
         self.logger = setup_logger("telegram_notifier")
         # Initialize Bot with proper timeout settings
         request = HTTPXRequest(
@@ -108,72 +115,81 @@ class TelegramNotifier:
     
     async def send_message(self, text: str, timeout: int = 5) -> bool:
         """
-        Send a text message via Telegram with retry logic.
+        Send a text message via Telegram to all configured recipients (chat + channel).
         
         Args:
             text: Message text to send
             timeout: Maximum time to wait for send (seconds)
         
         Returns:
-            True if sent successfully, False otherwise
+            True if sent successfully to all recipients, False if any failed
         """
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                self.logger.info(f"Telegram send attempt {attempt}/{self.max_retries} to chat {self.chat_id}...")
-                # Use asyncio.wait_for with timeout
-                result = await asyncio.wait_for(
-                    self.bot.send_message(
-                        chat_id=self.chat_id,
-                        text=text,
-                        parse_mode='Markdown',
-                        disable_web_page_preview=False
-                    ),
-                    timeout=timeout
-                )
-                self.logger.info(f"Telegram message sent successfully (attempt {attempt})")
-                return True
-                
-            except RetryAfter as e:
-                # Rate limited - wait for the specified time
-                wait_time = e.retry_after
-                self.logger.warning(f"Rate limited. Waiting {wait_time} seconds...")
-                await asyncio.sleep(wait_time)
-                continue
-                
-            except (TimedOut, NetworkError) as e:
-                # Network error - retry with exponential backoff
-                if attempt < self.max_retries:
-                    wait_time = attempt * 0.5  # 0.5s, 1s, 1.5s
-                    self.logger.warning(
-                        f"Network error on attempt {attempt}/{self.max_retries}: {e}. "
-                        f"Retrying in {wait_time}s..."
+        all_success = True
+        
+        for recipient_id in self.recipient_ids:
+            recipient_type = "channel" if recipient_id == self.channel_id else "chat"
+            
+            for attempt in range(1, self.max_retries + 1):
+                try:
+                    self.logger.info(f"Telegram send attempt {attempt}/{self.max_retries} to {recipient_type} {recipient_id}...")
+                    # Use asyncio.wait_for with timeout
+                    result = await asyncio.wait_for(
+                        self.bot.send_message(
+                            chat_id=recipient_id,
+                            text=text,
+                            parse_mode='Markdown',
+                            disable_web_page_preview=False
+                        ),
+                        timeout=timeout
                     )
+                    self.logger.info(f"Telegram message sent successfully to {recipient_type} (attempt {attempt})")
+                    break  # Success, move to next recipient
+                    
+                except RetryAfter as e:
+                    # Rate limited - wait for the specified time
+                    wait_time = e.retry_after
+                    self.logger.warning(f"Rate limited on {recipient_type}. Waiting {wait_time} seconds...")
                     await asyncio.sleep(wait_time)
                     continue
-                else:
-                    self.logger.error(f"Failed to send Telegram message after {self.max_retries} attempts: {e}")
-                    return False
                     
-            except TelegramError as e:
-                # Other Telegram errors - don't retry
-                self.logger.error(f"Telegram error: {e}")
-                return False
-                
-            except asyncio.TimeoutError as e:
-                if attempt < self.max_retries:
-                    self.logger.warning(f"Timeout on attempt {attempt}/{self.max_retries}. Retrying...")
-                    await asyncio.sleep(0.5)
-                    continue
-                else:
-                    self.logger.error(f"Telegram send timeout after {self.max_retries} attempts: {e}")
-                    return False
+                except (TimedOut, NetworkError) as e:
+                    # Network error - retry with exponential backoff
+                    if attempt < self.max_retries:
+                        wait_time = attempt * 0.5  # 0.5s, 1s, 1.5s
+                        self.logger.warning(
+                            f"Network error on attempt {attempt}/{self.max_retries} to {recipient_type}: {e}. "
+                            f"Retrying in {wait_time}s..."
+                        )
+                        await asyncio.sleep(wait_time)
+                        continue
+                    else:
+                        self.logger.error(f"Failed to send Telegram message to {recipient_type} {recipient_id} after {self.max_retries} attempts: {e}")
+                        all_success = False
+                        break
+                        
+                except TelegramError as e:
+                    # Other Telegram errors - don't retry
+                    self.logger.error(f"Telegram error on {recipient_type} {recipient_id}: {e}")
+                    all_success = False
+                    break
                     
-            except Exception as e:
-                # Unexpected errors - log and don't retry
-                self.logger.error(f"Unexpected error sending Telegram message: {e}")
-                return False
+                except asyncio.TimeoutError as e:
+                    if attempt < self.max_retries:
+                        self.logger.warning(f"Timeout on attempt {attempt}/{self.max_retries} to {recipient_type}. Retrying...")
+                        await asyncio.sleep(0.5)
+                        continue
+                    else:
+                        self.logger.error(f"Telegram send timeout to {recipient_type} {recipient_id} after {self.max_retries} attempts: {e}")
+                        all_success = False
+                        break
+                        
+                except Exception as e:
+                    # Unexpected errors - log and don't retry
+                    self.logger.error(f"Unexpected error sending Telegram message to {recipient_type} {recipient_id}: {e}")
+                    all_success = False
+                    break
         
-        return False
+        return all_success
     
     async def send_alert(self, opportunity: Dict, timeout: int = 5) -> bool:
         """

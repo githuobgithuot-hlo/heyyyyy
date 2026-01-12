@@ -119,7 +119,8 @@ class ArbitrageBot:
         # Initialize notification and storage
         self.telegram_notifier = TelegramNotifier(
             bot_token=self.config.telegram.bot_token,
-            chat_id=self.config.telegram.chat_id
+            chat_id=self.config.telegram.chat_id,
+            channel_id=self.config.telegram.channel_id
         )
         
         self.database = ArbitrageDatabase(self.config.database.path)

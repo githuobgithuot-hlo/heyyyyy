@@ -30,6 +30,7 @@ class TelegramConfig(BaseModel):
     """Telegram notification configuration."""
     bot_token: str = Field(default="", description="Telegram bot token")
     chat_id: int = Field(default=0, description="Telegram chat ID (integer)")
+    channel_id: int = Field(default=0, description="Telegram channel ID (integer, optional)")
 
 
 class CloudbetAPIConfig(BaseModel):
@@ -115,6 +116,8 @@ def load_config(config_path: str = "config/config.yaml") -> Config:
         # Always prefer environment variables if they exist
         env_bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
         env_chat_id = os.getenv('TELEGRAM_CHAT_ID')
+        env_channel_id = os.getenv('TELEGRAM_CHANNEL_ID')
+        
         if env_bot_token:
             config_dict['telegram']['bot_token'] = env_bot_token
         if env_chat_id:
@@ -124,6 +127,13 @@ def load_config(config_path: str = "config/config.yaml") -> Config:
             except (ValueError, TypeError):
                 # Invalid chat_id from env, will use config value
                 pass
+        if env_channel_id:
+            # Convert channel_id to int if from env var
+            try:
+                config_dict['telegram']['channel_id'] = int(env_channel_id)
+            except (ValueError, TypeError):
+                # Invalid channel_id from env, will use config value
+                pass
         
         # Ensure chat_id is an integer
         if isinstance(config_dict['telegram'].get('chat_id'), str):
@@ -131,6 +141,13 @@ def load_config(config_path: str = "config/config.yaml") -> Config:
                 config_dict['telegram']['chat_id'] = int(config_dict['telegram']['chat_id'])
             except (ValueError, TypeError):
                 config_dict['telegram']['chat_id'] = 0
+        
+        # Ensure channel_id is an integer
+        if isinstance(config_dict['telegram'].get('channel_id'), str):
+            try:
+                config_dict['telegram']['channel_id'] = int(config_dict['telegram']['channel_id'])
+            except (ValueError, TypeError):
+                config_dict['telegram']['channel_id'] = 0
     
     if 'apis' in config_dict and 'cloudbet' in config_dict['apis']:
         env_api_key = os.getenv('CLOUDBET_API_KEY')
